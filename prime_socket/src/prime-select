@@ -53,7 +53,7 @@ class Switcher(object):
         self._power_profile_path = '/etc/prime-discrete'
         self._grub_path = '/etc/default/grub'
         self._grub_cmdline_start = 'GRUB_CMDLINE_LINUX_DEFAULT='
-        self._blacklist_file = '/etc/modprobe.d/blacklist-nvidia.conf'
+        self._blacklist_file = '/etc/modprobe.d/61-blacklist-prime.conf'
         self._gdm_conf_file = '/etc/gdm3/custom.conf'
         self._xorg_path = "/usr/share/X11/xorg.conf.d/20-intel.conf"
         self._prime_sock_addr = "/tmp/prime_sock"
@@ -95,8 +95,7 @@ class Switcher(object):
         #i915 nvidia_drm
         # modinfo nvidia-drm
         # /var/lib/ubuntu-drivers-common/requires_offloading
-        return (os.path.isfile('/var/lib/ubuntu-drivers-common/requires_offloading') or
-                os.path.isfile('/run/u-d-c-nvidia-was-loaded'))
+        return True
 
     def enable_profile(self, profile):
         current_profile = self._get_profile()
@@ -167,11 +166,12 @@ class Switcher(object):
     def _add_xorg_intel_conf(self):
         conf_text = '''
             Section "Device"
-                Identifier "Intel Graphics"
-                Driver "intel"
-                Option "DRI" "3"
-                Option "TearFree" "true"
+                Identifier "intel"
+								Driver "intel"
+								BusID  "PCI:00:02:0"
                 Option "AccelMethod" "sna"
+                Option "DRI" "3"
+								#Option "TearFree" "true"
             EndSection
         '''
         conf_fd = open(self._xorg_path, 'w')
@@ -292,12 +292,12 @@ alias nvidia-modeset off'''
         return params
 
     def _update_initramfs(self):
-        subprocess.call(['update-initramfs', '-u'])
+        subprocess.call(['mkinitcpio', '-p', 'linux'])
         # This may not be necessary
-        subprocess.call(['update-initramfs', '-u', '-k', os.uname()[2]])
+        #subprocess.call(['update-initramfs', '-u', '-k', os.uname()[2]])
 
     def _update_grub(self):
-        subprocess.call(['update-grub'])
+        subprocess.call(['grub-mkconfig', '-o', '/boot/grub/grub.cfg'])
 
     def _backup_grub_config(self):
         destination = '%s.prime-backup' % self._grub_path

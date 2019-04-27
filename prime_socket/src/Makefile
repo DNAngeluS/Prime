@@ -12,3 +12,14 @@ install:
 	sudo chmod +x /usr/local/bin/turnoff_nvidia_at_boot
 	sudo systemctl enable prime-socket.service
 	sudo systemctl start prime-socket.service
+uninstall:
+	cd .. & sudo cargo clean
+	sudo rm -f /usr/local/bin/prime_socket
+	sudo rm -f /usr/local/bin/prime-select
+	sudo rm -f /usr/local/bin/turnoff_nvidia_at_boot
+	sudo systemctl stop prime-socket.service
+	sudo systemctl stop nvidia-prime-boot.service
+	sudo systemctl disable prime-socket.service
+	sudo systemctl disable nvidia-prime-boot.service
+	sudo rm -f /etc/systemd/system/nvidia-prime-boot.service
+	sudo rm -f /et/systemd/prime-socket.service
